@@ -5,6 +5,9 @@ from data_models import db, Author, Book
 
 app = Flask(__name__)
 
+# ----------------------
+# CONFIG
+# ----------------------
 basedir = os.path.abspath(os.path.dirname(__file__))
 
 app.config['SQLALCHEMY_DATABASE_URI'] = (
@@ -17,18 +20,13 @@ app.secret_key = "dev-key"
 db.init_app(app)
 
 
+# ----------------------
+# HOME + SEARCH
+# ----------------------
 @app.route("/")
 def home():
     """
-    Home page route.
-
-    Displays all books in the library.
-    If a search query is provided, filters books by title using case-insensitive partial matching.
-
-    Returns:
-        Rendered home.html template with:
-        - books (list of Book objects)
-        - query (optional search string)
+    Displays all books or filtered books based on search query.
     """
 
     query = request.args.get("q")
@@ -43,27 +41,24 @@ def home():
     return render_template("home.html", books=books, query=query)
 
 
+# ----------------------
+# ADD AUTHOR (FIXED FOR GIVEN HTML)
+# ----------------------
 @app.route("/add_author", methods=["GET", "POST"])
 def add_author():
     """
-    Add a new author to the database.
-
-    GET:
-        Renders the author creation form.
-
-    POST:
-        Validates input and creates a new Author record.
-        Stores optional birth and death dates if provided.
-
-    Returns:
-        Redirects to /add_author with flash message on success or error.
+    Creates a new author in the database.
+    Handles form field mismatch from provided HTML.
     """
 
     if request.method == "GET":
         return render_template("add_author.html")
 
     name = request.form.get("name")
-    birth_date = request.form.get("birth_date")
+
+    # IMPORTANT: matches HTML field "birthdate"
+    birth_date = request.form.get("birthdate")
+
     date_of_death = request.form.get("date_of_death")
 
     if not name:
@@ -83,16 +78,13 @@ def add_author():
     return redirect(url_for("add_author"))
 
 
+# ----------------------
+# DELETE BOOK
+# ----------------------
 @app.route("/book/<int:book_id>/delete", methods=["POST"])
 def delete_book(book_id):
     """
-    Delete a specific book from the database.
-
-    Args:
-        book_id (int): ID of the book to delete.
-
-    Returns:
-        Redirects to home page with success message.
+    Deletes a single book.
     """
 
     book = Book.query.get_or_404(book_id)
@@ -104,16 +96,13 @@ def delete_book(book_id):
     return redirect(url_for("home"))
 
 
+# ----------------------
+# DELETE AUTHOR
+# ----------------------
 @app.route("/author/<int:author_id>/delete", methods=["POST"])
 def delete_author(author_id):
     """
-    Delete an author and all associated books from the database.
-
-    Args:
-        author_id (int): ID of the author to delete.
-
-    Returns:
-        Redirects to home page with success message.
+    Deletes an author and all related books (cascade handled in model).
     """
 
     author = Author.query.get_or_404(author_id)
@@ -125,9 +114,8 @@ def delete_author(author_id):
     return redirect(url_for("home"))
 
 
+# ----------------------
+# DB INIT
+# ----------------------
 with app.app_context():
     db.create_all()
-
-
-if __name__=="__main__":
-    app.run(host="0.0.0.0", port=5000, debug=True)
