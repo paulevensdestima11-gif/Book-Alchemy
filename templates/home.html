@@ -1,0 +1,37 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Library</title>
+  </head>
+
+  <body>
+
+    <!-- SEARCH -->
+    <form method="GET" action="{{ url_for('home') }}">
+      <input type="text" name="q" placeholder="Search books...">
+      <button type="submit">Search</button>
+    </form>
+
+    {% if query %}
+      <p>Results for: <strong>{{ query }}</strong></p>
+    {% endif %}
+
+    <hr>
+
+    <!-- BOOK LIST -->
+    {% if books and books|length > 0 %}
+
+      {% for book in books %}
+        <div>
+          <h3>{{ book.title }}</h3>
+        </div>
+      {% endfor %}
+
+    {% else %}
+      <p>No books found.</p>
+    {% endif %}
+
+  </body>
+</html>
